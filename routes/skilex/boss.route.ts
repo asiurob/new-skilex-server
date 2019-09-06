@@ -6,18 +6,21 @@ import { error500 } from '../../global/errors'
 const BossRoute = Router()
 
 
-BossRoute.get( '/:area/:rol', ( req: Request, res: Response ) => {
+BossRoute.get( '/:rol/:area', ( req: Request, res: Response ) => {
 
     const area: String = req.params.area,
-          rol: String = req.params.rol
+          rol: Number  = Number(req.params.rol)
 
-    UserModel.find( { area, 'status': 'active' } ).sort('name')
+    UserModel.find().sort('name')
+    .populate({ path: 'role', select: 'hierarchy name'} )
+    .where('area', area )
+    .select('name last_name _id hierarchy')
     .exec( ( err: any, data: any ) => {
         if( err ) {
             return res.status( 500 ).json( { message: error500, err } )
         }
-
-        res.status( 200 ).json( { data } )
+        const result = data.filter( ( u: any ) => u.role.hierarchy > rol || u.role.hierarchy === 6 );
+        res.status( 200 ).json( { data: result } )
     })
 })
 

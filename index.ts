@@ -23,6 +23,7 @@ import CampaignListRoute from './routes/skilex/lists/campaign.list.route'
 // Rutas de cambios
 import UserChangesRoute from './routes/skilex/changes/user.changes.route'
 import CampaignChangesRoute from './routes/skilex/changes/campaigns.changes.route'
+import PasswordRoute from './routes/skilex/password.route';
 
 
 //Declaraciones
@@ -45,6 +46,7 @@ server.app.use( '/users', UserRoute )
 server.app.use( '/login', LoginRoute )
 server.app.use( '/boss', BossRoute )
 server.app.use( '/campaigns', CampaignRoute )
+server.app.use( '/password', PasswordRoute )
 
 // Rutas lista
 server.app.use( '/user-list', UserListRoute )

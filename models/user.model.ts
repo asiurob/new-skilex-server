@@ -43,8 +43,9 @@ const schema = new mongos.Schema({
     password      :   { type: String },
     status        :   { type: String, default: 'active' },
     last_login    :   { type: Date },
-    addedBy       :   { type: String },
+    addedBy       :   { type: mongos.Schema.Types.ObjectId, ref: 'User' },
     addedDate     : { type: Date, default: Date.now },
+    normalizedToLink: { type: String },
     modification  : [{
         _id       : false,
         user      : { type: mongos.Types.ObjectId, ref: 'User' },
