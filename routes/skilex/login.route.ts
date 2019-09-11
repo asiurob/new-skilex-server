@@ -19,8 +19,8 @@ LoginRouter.post('/', ( req: Request, res: Response ) => {
             message: 'No se envió usuario y/o contraseña'
         })
     }
-    const requestedData = 'name last_name password permissions photo'
-    const pop_role = { path: 'role', select: 'name' }
+    const requestedData = 'name last_name password permissions photo normalizedToLink'
+    const pop_role = { path: 'role', select: 'name hierarchy' }
     const pop_area  = { path: 'area', select: 'name' }
     UserModel.find( {$and: [{ 'status': 'active' },{ $or: [ { 'user_name' : user }, { 'email': user } ] }] }, requestedData )
     .populate( pop_role )

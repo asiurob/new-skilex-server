@@ -3,9 +3,10 @@ import UserModel from '../../models/user.model'
 import { error500 } from '../../global/errors'
 import bcrypt from 'bcrypt'
 import md5 from 'md5'
+import Deltas from '../../classes/deltas';
 
 const UserRoute = Router()
-
+const deltas    = new Deltas()
 
 UserRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
 
@@ -24,7 +25,7 @@ UserRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
         requestData = 'name last_name user_name photo email phone normalizedToLink status',
         cond = {}
     }
-    const pop_role    = { path: 'role', select: 'name' }
+    const pop_role    = { path: 'role', select: 'name hierarchy' }
     const pop_area    = { path: 'area', select: 'name' }
     UserModel.find(cond, requestData)
     .populate( pop_role )
@@ -77,55 +78,62 @@ UserRoute.post( '/:id',  ( req: Request, res: Response ) => {
         user_name: req.body.username.toLowerCase(),
         email: req.body.email.toLowerCase(),
         gender: Number(req.body.gender),
-        role: req.body.role,
+        role: req.body.role.slice(0, -1),
         area: req.body.area,
         phone: req.body.phone,
-        boss: req.body.user,
+        boss: req.body.boss,
         status: req.body.active,
-        normalizedToLink: `${req.body.name} ${ req.body.lastname }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
+        normalizedToLink: `${req.body.name} ${ req.body.lastname }-${ id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
     }
 
-
-   UserModel.findOneAndUpdate( {_id: id }, model, ( err: any, saved: any ) => {
-        if( err ) {
-            let errors: Array<String> = [];
-            for( let e in err[ 'errors' ] ) { errors.push( err[ 'errors' ][ e ]['message'] ) }
-
-            return res.status( 500 ).json({
-                message: error500,
-                error: err
-            })
-        }
-        if( req.files ) {
-            const file: any  = req.files.image
-            if( /^(image)\//i.test( file.mimetype ) ) {
-                const fileName = `${ md5( `${ file.name }.${ id }-${ new Date().getMilliseconds() }` ) }.png`
-                const path     = `./uploads/users/${ fileName }`
-                const obj      = { photo: fileName }
-                
-                file.mv( path, (err: any) => {             
-                    if( !err ) {
-                        UserModel.findByIdAndUpdate( id, obj, ( err: any, up: any ) => {
-                            if( err ) {
-                                return res.status( 500 ).json({
-                                    message: error500,
-                                    error: err
-                                })
-                            }
-                            
-                            res.status( 200 ).json( { 
-                                message: `Se actualizó correctamente el usuario ${ req.body.name } ${ req.body.lastname }` 
-                            } )
-                        })
-                    }
-                })
-            }
-        } else {
-            res.status( 200 ).json( { 
-                message: `Se actualizó correctamente el usuario ${ req.body.name } ${ req.body.lastname }` 
-            })
-        }
-    })
+     deltas.user( id, model )
+     .then( ( delta: any ) => {
+         UserModel.findOneAndUpdate( {_id: id }, delta, ( err: any, saved: any ) => {
+              if( err ) {
+                  let errors: Array<String> = [];
+                  for( let e in err[ 'errors' ] ) { errors.push( err[ 'errors' ][ e ]['message'] ) }
+      
+                  return res.status( 500 ).json({
+                      message: error500,
+                      error: err
+                  })
+              }
+              if( req.files ) {
+                  const file: any  = req.files.image
+                  if( /^(image)\//i.test( file.mimetype ) ) {
+                      const fileName = `${ md5( `${ file.name }.${ id }-${ new Date().getMilliseconds() }` ) }.png`
+                      const path     = `./uploads/users/${ fileName }`
+                      const obj      = { photo: fileName }
+                      
+                      file.mv( path, (err: any) => {             
+                          if( !err ) {
+                              UserModel.findByIdAndUpdate( id, obj, ( err: any, up: any ) => {
+                                  if( err ) {
+                                      return res.status( 500 ).json({
+                                          message: error500,
+                                          error: err
+                                      })
+                                  }
+                                  
+                                  res.status( 200 ).json( { 
+                                      message: `Se actualizó correctamente el usuario ${ req.body.name } ${ req.body.lastname }` 
+                                  } )
+                              })
+                          }
+                      })
+                  }
+              } else {
+                  res.status( 200 ).json( { 
+                      message: `Se actualizó correctamente el usuario ${ req.body.name } ${ req.body.lastname }` 
+                  })
+              }
+          })
+     },
+     () => {
+        return res.status( 200 ).json({
+            message: 'Sin información que actualizar'
+        })
+     })
 })
 
 UserRoute.put( '/',  ( req: Request, res: Response ) => {
@@ -142,8 +150,7 @@ UserRoute.put( '/',  ( req: Request, res: Response ) => {
         boss: req.body.boss,
         permissions: [],
         password: bcrypt.hashSync( 'Password1!', 10 ),
-        addedBy: req.body.user,
-        normalizedToLink: `${req.body.name} ${ req.body.lastname }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
+        addedBy: req.body.user
     })
 
 
@@ -157,6 +164,8 @@ UserRoute.put( '/',  ( req: Request, res: Response ) => {
                 error: err
             })
         }
+        const ntl = {
+            normalizedToLink: `${req.body.name} ${ req.body.lastname }-${ saved._id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()}
         if( req.files ) {
             const file: any  = req.files.image
             if( /^(image)\//i.test( file.mimetype ) ) {
