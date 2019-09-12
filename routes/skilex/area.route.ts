@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express'
 import AreaModel from '../../models/area.model'
 import { error500 } from '../../global/errors'
 import { auth } from '../../middlewares/auth.middleware';
-import RoleModel from '../../models/role.model';
 
 const AreaRoute = Router()
 

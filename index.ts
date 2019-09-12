@@ -23,7 +23,9 @@ import CampaignListRoute from './routes/skilex/lists/campaign.list.route'
 // Rutas de cambios
 import UserChangesRoute from './routes/skilex/changes/user.changes.route'
 import CampaignChangesRoute from './routes/skilex/changes/campaigns.changes.route'
-import PasswordRoute from './routes/skilex/password.route';
+import PasswordRoute from './routes/skilex/password.route'
+import GlassBrandRoute from './routes/skilex/catalogs/glass-brands.route'
+import GlassModelRoute from './routes/skilex/catalogs/glass-models.route'
 
 
 //Declaraciones
@@ -55,6 +57,10 @@ server.app.use( '/campaign-list', CampaignListRoute )
 // Rutas cambios
 server.app.use( '/user-changes', UserChangesRoute )
 server.app.use( '/campaign-changes', CampaignChangesRoute )
+
+// Rutas catalogos
+server.app.use( '/glass-brands', GlassBrandRoute )
+server.app.use( '/glass-models', GlassModelRoute )
 
 
 //Iniciar el servidor
