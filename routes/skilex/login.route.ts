@@ -19,10 +19,10 @@ LoginRouter.post('/', ( req: Request, res: Response ) => {
             message: 'No se envió usuario y/o contraseña'
         })
     }
-    const requestedData = 'name last_name password permissions photo normalizedToLink'
+    const requestedData = 'name last_name password permissions photo normalizedToLink status'
     const pop_role = { path: 'role', select: 'name hierarchy' }
     const pop_area  = { path: 'area', select: 'name' }
-    UserModel.find( {$and: [{ 'status': 'active' },{ $or: [ { 'user_name' : user }, { 'email': user } ] }] }, requestedData )
+    UserModel.find( {$or: [ { 'user_name' : user }, { 'email': user }]}, requestedData )
     .populate( pop_role )
     .populate( pop_area )
     .exec(( err: any, data: any ) => {
@@ -39,12 +39,21 @@ LoginRouter.post('/', ( req: Request, res: Response ) => {
             })
         }
 
+        if( data[0]['status'] !== 'active' ) {
+            return res.status(401).json({
+                message: 'Esta cuenta está bloqueada, contacta con el administrador'
+            })
+        }
+
         if( !bcrypt.compareSync( pass, data[0].password ) ) {
             return res.status(401).json({
                 message: 'La contraseña es incorrecta',
                 error: err
             })
         }
+
+        
+
 
         data[0]['password'] = null
 

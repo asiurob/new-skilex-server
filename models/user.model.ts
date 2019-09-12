@@ -50,8 +50,13 @@ const schema = new mongos.Schema({
         _id       : false,
         user      : { type: mongos.Types.ObjectId, ref: 'User' },
         date      : { type: Date, default: Date.now },
-        updated   : { type: Array }
-    }]
+        updated   : [{
+            field: { type: String },
+            from:  { type: String },
+            to:    { type: String },
+        }]
+    }],
+    onModel: { type: String, enum: [ 'User', 'Role', 'Area' ] }
     
 }, { collection: 'users' })
 
