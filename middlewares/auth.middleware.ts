@@ -10,7 +10,9 @@ export const auth = ( req: Request, res: Response, next: any ) => {
             return res.status(401).json({
                 data: err
             })
-        }   
+        }
+
+        req.body.user = dec.user[0]._id
         next()
     })
 }

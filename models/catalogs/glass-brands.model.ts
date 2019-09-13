@@ -25,6 +25,6 @@ const schema = new mongos.Schema({
 
 schema.plugin( validator, { message: 'Ya existe {VALUE} en la base de datos' } )
 
-const GlassBrandModel = mongos.model( 'GlassBrands', schema )
+const GlassBrandModel = mongos.model( 'GlassBrand', schema )
 
 export default GlassBrandModel

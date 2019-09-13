@@ -4,47 +4,57 @@ import GlassModelsModel from '../../../models/catalogs/glass-models.model'
 
 const GlassModelRoute = Router()
 
-GlassModelRoute.get('/:name?', (req: Request, res: Response) => {
+GlassModelRoute.get('/:skip/:limit/:name?', (req: Request, res: Response) => {
 
     const name      = req.params.name
+    const limit     = Number(req.params.limit) || 10
     const pop_user  = { path: 'addedBy', select: 'name last_name' }
-    const pop_brand = { path: 'brand', select: 'name' }
-    if (name) {
-        GlassModelsModel.find({
-                'normalizedToLink': name
-            })
+    const pop_brand = { path: 'brand', select: 'name', match: { status: 'active' } }
+    let skip        = Number(req.params.skip) || 1
+    let requestData: string
+    let cond 
+
+    skip = skip <= 0 ? 1 : (skip - 1) * 10
+
+    if ( name ) {
+        requestData = '',
+        cond = { $and: [ { normalizedToLink: name, name: { $ne: 'Sin marca' } } ]  }
+    } else {
+        requestData = 'name normalizedToLink status addedDate brand',
+        cond = { name: { $ne: 'Sin marca' } }
+    }
+
+    GlassModelsModel.find( cond, requestData )
+    .skip( skip ).limit( limit ).sort( 'name' )
+    .populate( pop_user )
+    .populate( pop_brand )
+    .exec( ( err: any, data: any ) => {
+
+        if ( err ) return res.status(500).json({ message: error500, err })
+
+        if( data.length === 0 && name ) {
+            cond = { 'name': { '$regex': `.*${ name }.*`, '$options': 'i' } }
+            GlassModelsModel.find( cond, requestData )
+            .skip( skip ).limit( limit ).sort( 'name' )
             .populate( pop_user )
             .populate( pop_brand )
-            .exec((err: any, data: any) => {
-                if (err) {
-                    return res.status(500).json({
-                        message: error500,
-                        err
-                    })
-                }
+            .exec( ( err: any, data: any ) => {
 
-                res.status(200).json({
-                    data
+                if ( err ) return res.status(500).json({ message: error500 })
+
+                GlassModelsModel.countDocuments( ( err: any, count: any ) => {
+                    data = data.filter( ( d: any ) => d.brand )
+                    return res.status(200).json({ data, count })
                 })
             })
 
-    } else {
-        GlassModelsModel.find({}).sort('name')
-        .populate( pop_user )
-        .populate( pop_brand )
-            .exec((err: any, data: any) => {
-                if (err) {
-                    return res.status(500).json({
-                        message: error500,
-                        err
-                    })
-                }
-
-                res.status(200).json({
-                    data
-                })
+        } else {
+            GlassModelsModel.countDocuments( ( err: any, count: any ) => {
+                data = data.filter( ( d: any ) => d.brand )
+                return res.status(200).json({ data, count })
             })
-    }
+        }
+    })
 })
 
 GlassModelRoute.post('/', (req: Request, res: Response) => {
@@ -70,7 +80,7 @@ GlassModelRoute.post('/', (req: Request, res: Response) => {
             res.status(200).json({
                 message: `Se insertó correctamente el modelo ${ saved.name }`
             })
-        });
+        })
     })
 })
 
@@ -104,6 +114,19 @@ GlassModelRoute.put('/:id', ( req: Request, res: Response ) => {
             message: 'La información no fue enviada de forma completa'
         })
     }
+})
+
+GlassModelRoute.delete( '/:id/:status', ( req: Request, res: Response ) => {
+    const id     = req.params.id
+    const status = req.params.status
+
+    if ( !id || !status ) return res.status(400).json({ message: 'No se envió la información' })
+
+    GlassModelsModel.findByIdAndUpdate( id, { status }, ( err: any ) => {
+        if ( err ) return res.status(500).json({ message: error500 })
+
+        res.status(201).json({})
+    })
 })
 
 export default GlassModelRoute

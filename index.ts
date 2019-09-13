@@ -15,6 +15,7 @@ import LoginRoute from './routes/skilex/login.route'
 import ModuleRoute from './routes/skilex/module.route'
 import BossRoute from './routes/skilex/boss.route'
 import CampaignRoute from './routes/skilex/campaign.route'
+import GlassesRoute from './routes/skilex/glasses.route'
 
 // Rutas de listados
 import UserListRoute from './routes/skilex/lists/user.list.route'
@@ -26,6 +27,8 @@ import CampaignChangesRoute from './routes/skilex/changes/campaigns.changes.rout
 import PasswordRoute from './routes/skilex/password.route'
 import GlassBrandRoute from './routes/skilex/catalogs/glass-brands.route'
 import GlassModelRoute from './routes/skilex/catalogs/glass-models.route'
+import GlassBrandModelRoute from "./routes/skilex/catalogs/glass-brands-model.route"
+
 
 
 //Declaraciones
@@ -49,6 +52,7 @@ server.app.use( '/login', LoginRoute )
 server.app.use( '/boss', BossRoute )
 server.app.use( '/campaigns', CampaignRoute )
 server.app.use( '/password', PasswordRoute )
+server.app.use( '/glasses', GlassesRoute )
 
 // Rutas lista
 server.app.use( '/user-list', UserListRoute )
@@ -61,6 +65,7 @@ server.app.use( '/campaign-changes', CampaignChangesRoute )
 // Rutas catalogos
 server.app.use( '/glass-brands', GlassBrandRoute )
 server.app.use( '/glass-models', GlassModelRoute )
+server.app.use( '/glass-brand-model', GlassBrandModelRoute )
 
 
 //Iniciar el servidor

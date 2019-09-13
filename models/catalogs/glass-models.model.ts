@@ -6,11 +6,10 @@ const schema = new mongos.Schema({
     name: { 
         type      : String, 
         required  : [ true, 'El nombre de la marca es necesario' ],
-        unique    : [ true, 'Ya existe una marca con ese nombre' ],
         maxlength : [ 50, 'El nombre no puede exceder los 50 caracteres' ],
         minlength : [ 3, 'La marca debe contener 3 o más caracteres' ]
     },
-    normalizedToLink: { type: String },
+    normalizedToLink: { type: String, unique : [ true, 'Ya existe una marca con ese nombre' ], },
     status        : { type: String, default: 'active' },
     brand         : { type: mongos.Schema.Types.ObjectId, ref: 'GlassBrands' }, 
     addedBy       : { type: mongos.Types.ObjectId, ref: 'User' },
@@ -26,6 +25,6 @@ const schema = new mongos.Schema({
 
 schema.plugin( validator, { message: 'Ya existe {VALUE} en la base de datos' } )
 
-const GlassModelsModel = mongos.model( 'GlassModels', schema )
+const GlassModelsModel = mongos.model( 'GlassModel', schema )
 
 export default GlassModelsModel
