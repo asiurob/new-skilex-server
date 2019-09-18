@@ -16,6 +16,7 @@ import ModuleRoute from './routes/skilex/module.route'
 import BossRoute from './routes/skilex/boss.route'
 import CampaignRoute from './routes/skilex/campaign.route'
 import GlassesRoute from './routes/skilex/glasses.route'
+import CompanyRoute from './routes/skilex/company.route'
 
 // Rutas de listados
 import UserListRoute from './routes/skilex/lists/user.list.route'
@@ -53,6 +54,7 @@ server.app.use( '/boss', BossRoute )
 server.app.use( '/campaigns', CampaignRoute )
 server.app.use( '/password', PasswordRoute )
 server.app.use( '/glasses', GlassesRoute )
+server.app.use( '/company', CompanyRoute )
 
 // Rutas lista
 server.app.use( '/user-list', UserListRoute )

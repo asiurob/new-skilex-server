@@ -1,4 +1,5 @@
 import UserModel from "../models/user.model";
+import CompanyModel from "../models/company.model";
 
 
 
@@ -29,5 +30,34 @@ export default class Deltas {
                 resolve(delta)
             })
         })
+    }
+
+    public company(id: String, data: any, required: String): Promise < any > {
+        const arr = required.split(' ')
+        return new Promise((resolve: any, reject: any) => {
+            
+            CompanyModel.findById(id, required, (err: any, info: any) => {
+                if (err) reject(null)
+
+                resolve( this.loop( arr, info, data ) )
+            })
+        })
+    }
+
+    private loop( indexes: Array<String>, info: Array<any>, data: any ): Array<any> {
+        let delta: Array<any> = []
+
+        indexes.forEach( ( index: any) => {
+            if ( info[ index ] && data[ index ] ) {
+                if ( info[ index ] != data[ index ] ) {
+                    const del: any = {}
+                    del.field =  index
+                    del.from  = info[ index ],
+                    del.to    = data[ index ]
+                    delta.push( del )
+                }
+            }
+        })
+        return delta
     }
 }
