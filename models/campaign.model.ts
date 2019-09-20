@@ -1,24 +1,19 @@
 import mongos from 'mongoose'
-import validator from 'mongoose-unique-validator'
 
 const schema = new mongos.Schema({
 
-    noemployees   : { type: Number },
-    type: { 
-        type      : String, 
-        required  : [ true, 'El esquema es necesario' ]
-    },
-    
-    date: { type: Date, required  : [ true, 'La fecha del evento es necesaria' ] },
-    time: { type: String, required  : [ true, 'La hora del evento es necesaria' ] },
-    people: [{ type: mongos.Schema.Types.ObjectId, ref: 'User' }],
-    comments: { type: String },
-    photo: { type: String },
-    utility: { type: Number },
+    date          : { type: Date, required  : [ true, 'La fecha del evento es necesaria' ] },
+    employees     : [{ type: mongos.Schema.Types.ObjectId, ref: 'User' }],
     company       : { type: mongos.Schema.Types.ObjectId, ref: 'Company' }, 
+    type          : {  type: String,  required  : [ true, 'El esquema es necesario' ]},
+    aprox_costumers : { type: Number },
+    comments      : { type: String },
     status        : { type: String, default: 'active' },
     addedBy       : { type: mongos.Schema.Types.ObjectId, ref: 'User' },
     addedDate     : { type: Date, default: Date.now },
+    flyer         : { type: Boolean, default: true },
+    founds        : { type: Number, default: 0 },
+    normalizedToLink: { type: String },
     modification  : [{
         _id       : false,
         user      : { type: mongos.Schema.Types.ObjectId, ref: 'User' },
@@ -27,8 +22,6 @@ const schema = new mongos.Schema({
     }]
 }, { collection: 'campaigns' } )
 
-
-schema.plugin( validator, { message: 'Ya existe {VALUE} en la base de datos' } )
 
 const CampaignModel = mongos.model( 'Campaign', schema )
 

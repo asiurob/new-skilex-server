@@ -29,6 +29,8 @@ import PasswordRoute from './routes/skilex/password.route'
 import GlassBrandRoute from './routes/skilex/catalogs/glass-brands.route'
 import GlassModelRoute from './routes/skilex/catalogs/glass-models.route'
 import GlassBrandModelRoute from "./routes/skilex/catalogs/glass-brands-model.route"
+import UserCatalogRoute from "./routes/skilex/catalogs/users.catalog.route"
+import CompanyCatalogRoute from './routes/skilex/catalogs/companies.catalog.route'
 
 
 
@@ -51,7 +53,7 @@ server.app.use( '/modules', ModuleRoute )
 server.app.use( '/users', UserRoute )
 server.app.use( '/login', LoginRoute )
 server.app.use( '/boss', BossRoute )
-server.app.use( '/campaigns', CampaignRoute )
+server.app.use( '/campaign', CampaignRoute )
 server.app.use( '/password', PasswordRoute )
 server.app.use( '/glasses', GlassesRoute )
 server.app.use( '/company', CompanyRoute )
@@ -68,6 +70,8 @@ server.app.use( '/campaign-changes', CampaignChangesRoute )
 server.app.use( '/glass-brands', GlassBrandRoute )
 server.app.use( '/glass-models', GlassModelRoute )
 server.app.use( '/glass-brand-model', GlassBrandModelRoute )
+server.app.use( '/user-catalog', UserCatalogRoute  )
+server.app.use( '/company-catalog', CompanyCatalogRoute  )
 
 
 //Iniciar el servidor

@@ -12,6 +12,7 @@ export const auth = ( req: Request, res: Response, next: any ) => {
         }
 
         req.body.user = dec.user[0]._id
+        req.body.userdata = dec.user[0]
         next()
     })
 }
