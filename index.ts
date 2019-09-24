@@ -31,7 +31,7 @@ import GlassModelRoute from './routes/skilex/catalogs/glass-models.route'
 import GlassBrandModelRoute from "./routes/skilex/catalogs/glass-brands-model.route"
 import UserCatalogRoute from "./routes/skilex/catalogs/users.catalog.route"
 import CompanyCatalogRoute from './routes/skilex/catalogs/companies.catalog.route'
-
+import path from 'path';
 
 
 //Declaraciones
@@ -75,7 +75,12 @@ server.app.use( '/company-catalog', CompanyCatalogRoute  )
 
 
 //Iniciar el servidor
-server.app.use( '/', router )
+server.app.use(express.static(path.join(__dirname, '../../ziro-deploy')));
+
+server.app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '../../ziro-deploy', 'index.html'));
+});
+
 server.start( () => {
     console.log( `Server running at ${ server.port } port` )
     //Iniciar base de datos

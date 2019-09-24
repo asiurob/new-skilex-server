@@ -1,5 +1,5 @@
 # Proyecto Bitcoin
-La única ruta que conoce el servidor es http://localhost:9000/bitcoin-data/? en el método GET y requiere un parámetro ( ? ) numérico para ejecutarse
+La única ruta que conoce el servidor es http://18.221.70.54:9000//bitcoin-data/? en el método GET y requiere un parámetro ( ? ) numérico para ejecutarse
 
 ## Instalación
 El proyecto corre con [MongoDB](https://www.mongodb.com/what-is-mongodb), [Nodejs](https://nodejs.org/en/) y podemos bajar las dependencias más importantes por medio de `npm` como Angular `npm install -g @angular/cli` y Express `npm install express`
