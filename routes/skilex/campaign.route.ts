@@ -2,10 +2,13 @@ import { Router, Request, Response } from 'express'
 import CampaignModel from '../../models/campaign.model'
 import { error500 } from '../../global/errors'
 import { auth } from '../../middlewares/auth.middleware'
+import Deltas from '../../classes/deltas'
 import nodemailer  from 'nodemailer'
-import { MAIL_CREDENTIALS } from '../../global/environment';
+import { MAIL_CREDENTIALS } from '../../global/environment'
+
 
 const CampaignRoute = Router()
+const deltas = new Deltas()
 
 CampaignRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
 
@@ -20,7 +23,7 @@ CampaignRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
         requestData = '',
         cond = { normalizedToLink: name }
     } else {
-        requestData = 'type date aprox_costumers comments normalizedToLink',
+        requestData = 'type date aprox_costumers comments normalizedToLink modification',
         cond = {}
     }
 
@@ -113,7 +116,7 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
             <div style="text-align:center;">
                 <h2 style="color: #007bff;">
                     ¡Hay una nueva campaña para ${ company }!
-                    <br><small style="color: #6c757d;">El ${ req.body.date } ${ req.body.time }</small>
+                    <br><small style="color: #6c757d;">El ${ req.body.date } a las ${ req.body.time }</small>
                 </h2>
                 <h3>El evento fue creado por <b>${ req.body.userdata.name } ${ req.body.userdata.last_name }</b></h3>
                 <ul style="list-style: none;">
@@ -139,29 +142,82 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
     })
 })
 
-CampaignRoute.put('/:id', ( req: Request, res: Response ) => {
-
-    const id: String   = req.params.id,
-          user: String = req.body.user,
-          data: Array<any>  = req.body.data
-
-    let obj: any = {}
-
-    obj[ data[0] ] = data[2]
-    obj[ '$push' ] = { 'modification': { user, updated: data } }
+CampaignRoute.put('/:id', [auth], ( req: Request, res: Response ) => {
     
-        
-    CampaignModel.findByIdAndUpdate( id, obj, ( err: any, up: any ) => {
+    const updater = req.body.user
+    const id      = req.params.id
+    const company = req.body.company
+    let date = new Date( `${ req.body.date } ${ req.body.time }:00` )
+    const model: any = {
+        date,
+        employees:       req.body.employees,
+        type:            req.body.type,
+        comments:        req.body.comments,
+        status:          req.body.status,
+        aprox_costumers: req.body.aprox_costumers
+    }
+    
+    if ( !model.date || model.employees.length === 0 || !model.type ) {
+            return res.status( 400 ).json( { message: 'No se envió completa la información' } );
+    }
+    
+    const required = 'employees status date type aprox_costumers comments'
+    deltas.campaign( id, model, required )
+    .then( ( delta: Array<any> ) => {
+        if( delta.length > 0 ){
+            const toUpdate: any = {}
+            const compareKeys: any = {
+                date: 'La fecha del evento',  employees: 'Los asistentes', type: 'El tipo de pago',
+                comments: 'Los comentarios', aprox_costumers: 'Clientes aproximados', status: 'El estado'
+            }
 
-        if( err ) {
-            return res.status( 500 ).json({
-                message: error500,
-                error: err
+            delta.forEach( ( d: any, index: number ) => {
+                toUpdate[ d.field ] = d.to
+                delta[ index ].field = compareKeys[ d.field ]
             })
+
+
+            toUpdate.$push = { modification: { date: new Date(), user: updater, updated: delta } }
+            toUpdate.normalizedToLink = `campania-${ company }-${ req.body.date.replace(/\-+/g,'') }-${ id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
+            CampaignModel.findOneAndUpdate( {_id: id }, toUpdate, ( err: any ) => {
+                
+                if( err )  return res.status( 500 ).json({ message: error500 })
+                const transport = nodemailer.createTransport( MAIL_CREDENTIALS )
+                const html = `
+                <div style="text-align:center;">
+                    <h2 style="color: #ffc107;">
+                        Se actualizó la campaña de ${ company }
+                        <br><small style="color: #6c757d;">El ${ req.body.date } a las ${ req.body.time }</small>
+                    </h2>
+                    <h3>El evento fue actualizado por <b>${ req.body.userdata.name } ${ req.body.userdata.last_name }</b></h3>
+                    <ul style="list-style: none;">
+                        <li>Empleados aproximados: <b>${ req.body.aprox_costumers }</b></li>
+                        <li>Esquema: <b>${ req.body.type }</b></li>
+                        <li>Gente asignada: <b>${ req.body.employees.length }</b></li>
+                        <li>Comentarios adicionales: <b>${ req.body.comments }</b></li>
+                    </ul>
+                    <a href="http://localhost:4200/campaigns/edit/${ toUpdate.normalizedToLink }">Puedes revisarlo aquí</a>
+                </div>`
+        
+                const options = {
+                    from: '"Ziro Hermes" <informa@opticaym.com>',
+                    to: 'sistemas@opticaym.com, manuel.cruz@opticaym.com',
+                    subject: `Se actualizó la campaña ${ company.toUpperCase() } el ${ req.body.date } ${ req.body.time }`,
+                    html
+                }
+
+                transport.sendMail( options )
+                res.status( 204 ).json({})
+            })
+
+        } else {
+            return res.status( 204 ).json({ message: 'Sin información que actualizar' }) 
         }
-        res.status( 204 ).json( {} )
     })
-})
+    .catch( () => {
+        return res.status( 500 ).json({ message: error500 })
+    })
+}) 
 
 
 export default CampaignRoute

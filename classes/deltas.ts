@@ -1,5 +1,6 @@
 import UserModel from "../models/user.model";
 import CompanyModel from "../models/company.model";
+import CampaignModel from "../models/campaign.model";
 
 
 
@@ -44,18 +45,51 @@ export default class Deltas {
         })
     }
 
-    private loop( indexes: Array<String>, info: Array<any>, data: any ): Array<any> {
+    public campaign(id: String, data: any, required: String): Promise < any > {
+        const arr = required.split(' ')
+        return new Promise((resolve: any, reject: any) => {
+            
+            CampaignModel.findById(id, required, (err: any, info: any) => {
+                if (err) reject(null)
+
+                resolve( this.loop( arr, info, data ) )
+            })
+        })
+    }
+
+    private loop( indexes: Array<String>, info:any, data: any ): Array<any> {
         let delta: Array<any> = []
+        
 
         indexes.forEach( ( index: any) => {
             if ( info[ index ] && data[ index ] ) {
-                if ( info[ index ] != data[ index ] ) {
-                    const del: any = {}
-                    del.field =  index
-                    del.from  = info[ index ],
-                    del.to    = data[ index ]
-                    delta.push( del )
+
+                if ( index === 'date' ) {
+                    if ( info[ index ].toString() != data[ index ].toString() ) {
+                        const del: any = {}
+                        del.field =  index
+                        del.from  = info[ index ],
+                        del.to    = data[ index ]
+                        delta.push( del )
+                    }
+                } else if ( index === 'employees' ){
+                    if ( info[ index ].join() != data[ index ].join() ) {
+                        const del: any = {}
+                        del.field =  index
+                        del.from  = info[ index ],
+                        del.to    = data[ index ]
+                        delta.push( del )
+                    }
+                } else {
+                    if ( info[ index ] != data[ index ] ) {
+                        const del: any = {}
+                        del.field =  index
+                        del.from  = info[ index ],
+                        del.to    = data[ index ]
+                        delta.push( del )
+                    }
                 }
+
             }
         })
         return delta
