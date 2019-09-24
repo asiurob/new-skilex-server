@@ -77,7 +77,7 @@ server.app.use( '/company-catalog', CompanyCatalogRoute  )
 //Iniciar el servidor
 server.app.use(express.static(path.join(__dirname, '../../ziro-deploy')));
 
-server.app.get('/', function(req, res) {
+server.app.get('/*', function(req, res) {
   res.sendFile(path.join(__dirname, '../../ziro-deploy', 'index.html'));
 });
 

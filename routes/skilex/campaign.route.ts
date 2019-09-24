@@ -125,7 +125,7 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
                     <li>Gente asignada: <b>${ req.body.employees.length }</b></li>
                     <li>Comentarios adicionales: <b>${ req.body.comments }</b></li>
                 </ul>
-                <a href="http://18.221.70.54:9000/campaigns/edit/${ ntl }">Puedes revisarlo aquí</a>
+                <a href="http://18.221.70.54:9000/campaigns/edit/${ ntl }/1">Puedes revisarlo aquí</a>
             </div>`
     
             const options = {
@@ -196,7 +196,7 @@ CampaignRoute.put('/:id', [auth], ( req: Request, res: Response ) => {
                         <li>Gente asignada: <b>${ req.body.employees.length }</b></li>
                         <li>Comentarios adicionales: <b>${ req.body.comments }</b></li>
                     </ul>
-                    <a href="http://18.221.70.54:9000/campaigns/edit/${ toUpdate.normalizedToLink }">Puedes revisarlo aquí</a>
+                    <a href="http://18.221.70.54:9000/campaigns/edit/${ toUpdate.normalizedToLink }/1">Puedes revisarlo aquí</a>
                 </div>`
         
                 const options = {
