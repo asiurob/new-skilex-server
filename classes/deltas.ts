@@ -1,6 +1,7 @@
 import UserModel from "../models/user.model";
 import CompanyModel from "../models/company.model";
 import CampaignModel from "../models/campaign.model";
+import GlassesModel from '../models/glasses.model';
 
 
 
@@ -38,6 +39,18 @@ export default class Deltas {
         return new Promise((resolve: any, reject: any) => {
             
             CompanyModel.findById(id, required, (err: any, info: any) => {
+                if (err) reject(null)
+
+                resolve( this.loop( arr, info, data ) )
+            })
+        })
+    }
+
+    public glasses(id: String, data: any, required: String): Promise < any > {
+        const arr = required.split(' ')
+        return new Promise((resolve: any, reject: any) => {
+            
+            GlassesModel.findById(id, required, (err: any, info: any) => {
                 if (err) reject(null)
 
                 resolve( this.loop( arr, info, data ) )

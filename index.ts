@@ -1,6 +1,6 @@
 //Dependencias
 import Server from "./classes/server"
-import router from "./routes/router"
+import router from './routes/router';
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import Database from "./classes/database"
@@ -32,6 +32,7 @@ import GlassBrandModelRoute from "./routes/skilex/catalogs/glass-brands-model.ro
 import UserCatalogRoute from "./routes/skilex/catalogs/users.catalog.route"
 import CompanyCatalogRoute from './routes/skilex/catalogs/companies.catalog.route'
 import path from 'path';
+import { ISPROD } from './global/environment';
 
 
 //Declaraciones
@@ -75,11 +76,15 @@ server.app.use( '/company-catalog', CompanyCatalogRoute  )
 
 
 //Iniciar el servidor
-server.app.use(express.static(path.join(__dirname, '../../ziro-deploy')));
-
-server.app.get('/*', function(req, res) {
-  res.sendFile(path.join(__dirname, '../../ziro-deploy', 'index.html'));
-});
+if ( ISPROD ) {
+  server.app.use(express.static(path.join(__dirname, '../../ziro-deploy')))
+  
+  server.app.get('/*', function(req, res) {
+    res.sendFile(path.join(__dirname, '../../ziro-deploy', 'index.html'))
+  })
+} else {
+  server.app.use( '/', router )
+}
 
 server.start( () => {
     console.log( `Server running at ${ server.port } port` )

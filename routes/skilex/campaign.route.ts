@@ -23,7 +23,7 @@ CampaignRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
         requestData = '',
         cond = { normalizedToLink: name }
     } else {
-        requestData = 'type date aprox_costumers comments normalizedToLink modification',
+        requestData = 'type date aprox_costumers comments normalizedToLink modification place',
         cond = {}
     }
 
@@ -36,7 +36,6 @@ CampaignRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
     .populate( { path: 'employees', select: 'name last_name photo normalizedToLink' } )
     .populate( { path: 'company', select: 'name photo normalizedToLink' } )
     .exec( ( err: any, data: any ) => {
-        let response: any
         if ( err ) return res.status( 500 ).json( { message: error500 } )
 
         if ( data.length === 0 && name ) {
@@ -89,7 +88,7 @@ CampaignRoute.get( '/:skip/:limit/:name?', ( req: Request, res: Response ) => {
 CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
 
     if ( !req.body.date || !req.body.time || req.body.employees.length === 0 ||  
-        !req.body.company || !req.body.type ) {
+        !req.body.company || !req.body.type || !req.body.place ) {
             return res.status( 400 ).json( { message: 'No se envió completa la información' } );
         }
 
@@ -98,6 +97,7 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
         date,
         employees: req.body.employees,
         company: req.body.company,
+        place: req.body.place,
         type: req.body.type,
         aprox_costumers: req.body.aprox_costumers,
         comments: req.body.comments,
@@ -107,8 +107,8 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
 
     model.save( ( err: any, saved: any ) => {
         if( err )  return res.status( 500 ).json({ message: error500 })
-        const company = req.body.company_name;
-        const ntl = `campania-${ company }-${ req.body.date.replace(/\-+/g,'') }-${ saved._id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
+        const company = req.body.company_name
+        const ntl = `campania-${ company }-${ req.body.place }-${ req.body.date.replace(/\-+/g,'') }-${ saved._id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
         
         CampaignModel.findByIdAndUpdate( saved._id, { normalizedToLink: ntl }, ( err: any ) => {
             const transport = nodemailer.createTransport( MAIL_CREDENTIALS )
@@ -116,6 +116,7 @@ CampaignRoute.post('/', [auth], ( req: Request, res: Response ) => {
             <div style="text-align:center;">
                 <h2 style="color: #007bff;">
                     ¡Hay una nueva campaña para ${ company }!
+                    <br><small style="color: #17a2b8;">${ req.body.place }</small>
                     <br><small style="color: #6c757d;">El ${ req.body.date } a las ${ req.body.time }</small>
                 </h2>
                 <h3>El evento fue creado por <b>${ req.body.userdata.name } ${ req.body.userdata.last_name }</b></h3>
@@ -151,24 +152,26 @@ CampaignRoute.put('/:id', [auth], ( req: Request, res: Response ) => {
     const model: any = {
         date,
         employees:       req.body.employees,
+        place:           req.body.place,
         type:            req.body.type,
         comments:        req.body.comments,
         status:          req.body.status,
         aprox_costumers: req.body.aprox_costumers
     }
     
-    if ( !model.date || model.employees.length === 0 || !model.type ) {
+    if ( !model.date || model.employees.length === 0 || !model.type || !model.place ) {
             return res.status( 400 ).json( { message: 'No se envió completa la información' } );
     }
     
-    const required = 'employees status date type aprox_costumers comments'
+    const required = 'employees status date type aprox_costumers comments place'
     deltas.campaign( id, model, required )
     .then( ( delta: Array<any> ) => {
         if( delta.length > 0 ){
             const toUpdate: any = {}
             const compareKeys: any = {
                 date: 'La fecha del evento',  employees: 'Los asistentes', type: 'El tipo de pago',
-                comments: 'Los comentarios', aprox_costumers: 'Clientes aproximados', status: 'El estado'
+                comments: 'Los comentarios', aprox_costumers: 'Clientes aproximados', status: 'El estado',
+                place: 'La sede'
             }
 
             delta.forEach( ( d: any, index: number ) => {
@@ -178,15 +181,16 @@ CampaignRoute.put('/:id', [auth], ( req: Request, res: Response ) => {
 
 
             toUpdate.$push = { modification: { date: new Date(), user: updater, updated: delta } }
-            toUpdate.normalizedToLink = `campania-${ company }-${ req.body.date.replace(/\-+/g,'') }-${ id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
+            toUpdate.normalizedToLink =  `campania-${ company }-${ req.body.place }-${ req.body.date.replace(/\-+/g,'') }-${ id }`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').toLowerCase()
             CampaignModel.findOneAndUpdate( {_id: id }, toUpdate, ( err: any ) => {
                 
                 if( err )  return res.status( 500 ).json({ message: error500 })
                 const transport = nodemailer.createTransport( MAIL_CREDENTIALS )
                 const html = `
                 <div style="text-align:center;">
-                    <h2 style="color: #ffc107;">
+                    <h2 style="color: #dc3545">
                         Se actualizó la campaña de ${ company }
+                        <br><small style="color: #ffc107;">${ req.body.place }</small>
                         <br><small style="color: #6c757d;">El ${ req.body.date } a las ${ req.body.time }</small>
                     </h2>
                     <h3>El evento fue actualizado por <b>${ req.body.userdata.name } ${ req.body.userdata.last_name }</b></h3>

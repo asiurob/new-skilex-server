@@ -5,6 +5,7 @@ const schema = new mongos.Schema({
     date          : { type: Date, required  : [ true, 'La fecha del evento es necesaria' ] },
     employees     : [{ type: mongos.Schema.Types.ObjectId, ref: 'User' }],
     company       : { type: mongos.Schema.Types.ObjectId, ref: 'Company' }, 
+    place         : { type: String, default: 'Matriz' }, 
     type          : {  type: String,  required  : [ true, 'El esquema es necesario' ]},
     aprox_costumers : { type: Number },
     comments      : { type: String },

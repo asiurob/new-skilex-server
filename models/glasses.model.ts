@@ -1,11 +1,8 @@
 import mongos from 'mongoose'
-import validator from 'mongoose-unique-validator'
 
 const schema = new mongos.Schema({
-
-    normalizedToLink: { type: String },
     brand         : { type: mongos.Types.ObjectId, ref: 'GlassBrand' },
-    model         : { type: mongos.Types.ObjectId, ref: 'GlassModel' },
+    model         : { type: String, required: [ true, 'Se necesita el modelo' ] },
     price         : { 
                         type: Number, 
                         required: [true, 'El precio es necesario'],
@@ -20,6 +17,7 @@ const schema = new mongos.Schema({
                     },
     left          : {   type: Number,  min: 0 },
     status        : { type: String, default: 'active' },
+    normalizedToLink: { type: String },
     addedBy       : { type: mongos.Types.ObjectId, ref: 'User' },
     addedDate     : { type: Date, default: Date.now },
     modification  : [{
